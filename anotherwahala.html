@@ -472,6 +472,7 @@
             background: #203236;
         }
 
+        .device-picker,
         .role-picker {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -479,6 +480,7 @@
             margin: 18px 0;
         }
 
+        .device-choice,
         .role-choice {
             min-width: 0;
             padding: 12px;
@@ -490,22 +492,27 @@
             cursor: pointer;
         }
 
+        .device-choice[aria-pressed="true"],
         .role-choice[aria-pressed="true"] {
             border-color: var(--mint);
             background: #28403d;
             box-shadow: inset 0 0 0 1px #9fe3c633;
         }
 
+        .device-choice strong,
+        .device-choice span,
         .role-choice strong,
         .role-choice span {
             display: block;
         }
 
+        .device-choice strong,
         .role-choice strong {
             font: 700 15px 'Barlow Condensed', sans-serif;
             text-transform: uppercase;
         }
 
+        .device-choice span,
         .role-choice span {
             margin-top: 5px;
             color: #a8b7b2;
@@ -605,6 +612,86 @@
 
         .hidden {
             display: none !important;
+        }
+
+        .mobile-controls {
+            position: fixed;
+            z-index: 4;
+            right: 18px;
+            bottom: max(18px, env(safe-area-inset-bottom));
+            left: 18px;
+            display: none;
+            align-items: flex-end;
+            justify-content: space-between;
+            pointer-events: none;
+            touch-action: none;
+        }
+
+        .mobile-device.round-started .mobile-controls {
+            display: flex;
+        }
+
+        .mobile-joystick {
+            position: relative;
+            display: grid;
+            width: 128px;
+            height: 128px;
+            flex: 0 0 auto;
+            place-items: center;
+            border: 1px solid #9fe3c666;
+            border-radius: 50%;
+            background: #142126b8;
+            box-shadow: 0 5px 20px #0007, inset 0 0 0 8px #9fe3c61a;
+            pointer-events: auto;
+            touch-action: none;
+            user-select: none;
+        }
+
+        .joystick-knob {
+            width: 54px;
+            height: 54px;
+            border: 1px solid #b9f0d3;
+            border-radius: 50%;
+            background: #31554ecc;
+            box-shadow: 0 3px 10px #0008;
+            pointer-events: none;
+            transform: translate(0, 0);
+        }
+
+        .mobile-action-stack {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(62px, 74px));
+            gap: 9px;
+            pointer-events: auto;
+        }
+
+        .mobile-action {
+            min-height: 56px;
+            padding: 6px;
+            border-radius: 50%;
+            font-size: 9px;
+            letter-spacing: .3px;
+            box-shadow: 0 4px 12px #0008;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        .mobile-action.danger {
+            border-color: #b65d54;
+            color: #ffe3dc;
+            background: #713c39;
+        }
+
+        .mobile-action:disabled {
+            opacity: .5;
+        }
+
+        .mobile-device #interactHint kbd {
+            display: none;
+        }
+
+        .mobile-device .key-help {
+            display: none;
         }
 
         @media (max-width: 860px) {
@@ -711,6 +798,26 @@
             .key-help {
                 gap: 7px;
             }
+
+            .mobile-controls {
+                right: 12px;
+                left: 12px;
+            }
+
+            .mobile-joystick {
+                width: 112px;
+                height: 112px;
+            }
+
+            .mobile-action-stack {
+                grid-template-columns: repeat(2, minmax(56px, 66px));
+                gap: 7px;
+            }
+
+            .mobile-action {
+                min-height: 50px;
+                font-size: 8px;
+            }
         }
     </style>
 </head>
@@ -759,7 +866,7 @@
                         <div class="progress-fill" id="progressFill"></div>
                     </div>
                     <div class="progress-label"><span id="progressLabel">TASKS</span><span id="progressCount">0 /
-                            3</span></div>
+                            10</span></div>
                 </section>
 
                 <section class="panel roster-panel">
@@ -818,12 +925,38 @@
         </section>
     </main>
 
+    <div class="mobile-controls" id="mobileControls" aria-label="Mobile game controls">
+        <div class="mobile-joystick" id="mobileJoystick" role="group" aria-label="Movement joystick">
+            <div class="joystick-knob" id="joystickKnob"></div>
+        </div>
+        <div class="mobile-action-stack">
+            <button class="action-button mobile-action" id="mobileUseButton" type="button"
+                aria-label="Use or interact">Use</button>
+            <button class="action-button mobile-action" id="mobileReportButton" type="button"
+                aria-label="Report nearby body" disabled>Report</button>
+            <button class="action-button mobile-action danger" id="mobileKillButton" type="button"
+                aria-label="Eliminate nearby crew member" disabled>Eliminate</button>
+            <button class="action-button mobile-action" id="mobileSabotageButton" type="button"
+                aria-label="Sabotage ship lights" disabled>Lights</button>
+            <button class="action-button mobile-action" id="mobileMapButton" type="button"
+                aria-label="Toggle map view">Map</button>
+        </div>
+    </div>
+
     <div class="overlay" id="startOverlay">
         <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="startTitle">
             <p class="dialog-kicker">Deep-space vessel · shift 01</p>
             <h1 id="startTitle">Someone is<br>not who they say.</h1>
             <p class="dialog-copy">The lights dipped for eleven seconds. Now the crew is one too many, and every airlock
-                is sealed. Choose your role before the shift begins.</p>
+                is sealed. Pick the device you’re playing on, then choose your role before the shift begins.</p>
+            <div class="device-picker" role="group" aria-label="Choose your device">
+                <button class="device-choice" type="button" data-device="pc" aria-pressed="true">
+                    <strong>PC</strong><span>Keyboard and mouse controls.</span>
+                </button>
+                <button class="device-choice" type="button" data-device="mobile" aria-pressed="false">
+                    <strong>Mobile</strong><span>Touch controls for a handheld play session.</span>
+                </button>
+            </div>
             <div class="role-picker" role="group" aria-label="Choose your role">
                 <button class="role-choice" type="button" data-role="crew" aria-pressed="true">
                     <strong>Crewmate</strong><span>Repair the ship and find the infiltrator.</span>
@@ -833,12 +966,12 @@
                 </button>
             </div>
             <div class="briefing">
-                <div class="briefing-row"><strong>As crew</strong><span>Finish six ship tasks. Watch the crew. Report
+                <div class="briefing-row"><strong>As crew</strong><span>Finish ten ship tasks. Watch the crew. Report
                         anything suspicious.</span></div>
                 <div class="briefing-row"><strong>As infiltrator</strong><span>Quietly remove the crew before they
                         finish their work. Don’t get caught.</span></div>
-                <div class="briefing-row"><strong>Controls</strong><span>WASD to move · E to use a console · R to report
-                        a body.</span></div>
+                <div class="briefing-row"><strong>Controls</strong><span id="controlSummary">WASD to move · E to use a
+                        console · R to report a body.</span></div>
             </div>
             <button class="action-button" id="startButton">Begin shift <span aria-hidden="true">→</span></button>
         </section>
@@ -882,7 +1015,18 @@
             const ctx = canvas.getContext('2d');
             const hint = document.getElementById('interactHint');
             const hintText = document.getElementById('hintText');
-            const taskNames = ['Calibrate navigation', 'Align the signal', 'Prime the reactor', 'Restore life support', 'Sort cargo manifest', 'Tune electrical grid'];
+            const taskNames = [
+                'Calibrate navigation',
+                'Align the signal',
+                'Prime the reactor',
+                'Restore life support',
+                'Sort cargo manifest',
+                'Tune electrical grid',
+                'Rebalance power coils',
+                'Seal pressure valves',
+                'Inspect airlock seals',
+                'Cycle hydroponics'
+            ];
             const crewData = [
                 { name: 'Marlow', color: '#e87959' },
                 { name: 'Sable', color: '#77b8cc' },
@@ -898,16 +1042,81 @@
                 { x: 675, y: 250, width: 238, height: 112, name: 'ELECTRICAL', accent: '#e49b71' },
                 { x: 47, y: 390, width: 246, height: 150, name: 'MED BAY', accent: '#a7c7dd' },
                 { x: 360, y: 390, width: 240, height: 150, name: 'CARGO BAY', accent: '#d2b65c' },
-                { x: 663, y: 390, width: 250, height: 150, name: 'REACTOR', accent: '#db8374' }
+                { x: 663, y: 390, width: 250, height: 150, name: 'REACTOR', accent: '#db8374' },
+                { x: 265, y: 390, width: 90, height: 150, name: 'STORAGE', accent: '#d1b088' },
+                { x: 600, y: 390, width: 90, height: 150, name: 'AIRLOCK', accent: '#9bb7d6' },
+                { x: 300, y: 250, width: 40, height: 112, name: 'HYDROPONICS', accent: '#8ad8c1' },
+                { x: 7, y: 56, width: 32, height: 160, name: 'LAB', accent: '#9ad1c4' },
+                { x: 7, y: 250, width: 32, height: 112, name: 'ARCHIVE', accent: '#bfd2a3' },
+                { x: 7, y: 390, width: 32, height: 150, name: 'LIFT', accent: '#b7d7df' },
+                { x: 921, y: 56, width: 32, height: 160, name: 'QUARTERS', accent: '#d0b985' },
+                { x: 921, y: 250, width: 32, height: 112, name: 'STAGING', accent: '#e0a973' },
+                { x: 921, y: 390, width: 32, height: 150, name: 'MACHINERY', accent: '#d4bde2' },
+                { x: 310, y: 470, width: 55, height: 70, name: 'PUMP ROOM', accent: '#8ec9d3' }
             ];
             const observationRoom = { x: 343, y: 215, width: 274, height: 172, name: 'OBSERVATION' };
+            const doorways = [
+                { axis: 'horizontal', edge: 216, start: 149, end: 181 },
+                { axis: 'horizontal', edge: 216, start: 464, end: 496 },
+                { axis: 'horizontal', edge: 214, start: 779, end: 811 },
+                { axis: 'horizontal', edge: 250, start: 149, end: 181 },
+                { axis: 'horizontal', edge: 250, start: 779, end: 811 },
+                { axis: 'horizontal', edge: 362, start: 149, end: 181 },
+                { axis: 'horizontal', edge: 362, start: 779, end: 811 },
+                { axis: 'horizontal', edge: 390, start: 149, end: 181 },
+                { axis: 'horizontal', edge: 387, start: 464, end: 496 },
+                { axis: 'horizontal', edge: 390, start: 779, end: 811 },
+                { axis: 'horizontal', edge: 390, start: 294, end: 326 },
+                { axis: 'horizontal', edge: 390, start: 629, end: 661 },
+                { axis: 'horizontal', edge: 470, start: 321, end: 353 },
+                { axis: 'horizontal', edge: 215, start: 464, end: 496 },
+                { axis: 'horizontal', edge: 387, start: 464, end: 496 },
+                { axis: 'vertical', edge: 285, start: 290, end: 322 },
+                { axis: 'vertical', edge: 343, start: 290, end: 322 },
+                { axis: 'vertical', edge: 617, start: 290, end: 322 },
+                { axis: 'vertical', edge: 675, start: 290, end: 322 },
+                { axis: 'vertical', edge: 300, start: 290, end: 322 },
+                { axis: 'vertical', edge: 340, start: 290, end: 322 },
+                { axis: 'vertical', edge: 39, start: 120, end: 152 },
+                { axis: 'vertical', edge: 39, start: 290, end: 322 },
+                { axis: 'vertical', edge: 39, start: 449, end: 481 },
+                { axis: 'vertical', edge: 921, start: 118, end: 150 },
+                { axis: 'vertical', edge: 921, start: 290, end: 322 },
+                { axis: 'vertical', edge: 921, start: 449, end: 481 },
+                { axis: 'vertical', edge: 293, start: 434, end: 466 },
+                { axis: 'vertical', edge: 265, start: 434, end: 466 },
+                { axis: 'vertical', edge: 355, start: 449, end: 481 },
+                { axis: 'vertical', edge: 360, start: 489, end: 521 },
+                { axis: 'vertical', edge: 600, start: 449, end: 481 },
+                { axis: 'vertical', edge: 690, start: 449, end: 481 },
+                { axis: 'vertical', edge: 310, start: 489, end: 521 },
+                { axis: 'vertical', edge: 365, start: 489, end: 521 },
+                { axis: 'vertical', edge: 45, start: 120, end: 152 },
+                { axis: 'vertical', edge: 45, start: 290, end: 322 },
+                { axis: 'vertical', edge: 47, start: 449, end: 481 },
+                { axis: 'vertical', edge: 913, start: 118, end: 150 },
+                { axis: 'vertical', edge: 913, start: 290, end: 322 },
+                { axis: 'vertical', edge: 913, start: 449, end: 481 },
+                { axis: 'vertical', edge: 285, start: 120, end: 152 },
+                { axis: 'vertical', edge: 360, start: 120, end: 152 },
+                { axis: 'vertical', edge: 600, start: 118, end: 150 },
+                { axis: 'vertical', edge: 675, start: 118, end: 150 },
+                { axis: 'vertical', edge: 47, start: 449, end: 481 },
+                { axis: 'vertical', edge: 360, start: 449, end: 481 },
+                { axis: 'vertical', edge: 600, start: 449, end: 481 },
+                { axis: 'vertical', edge: 913, start: 449, end: 481 }
+            ];
             const consolePoints = [
                 { x: .17, y: .25, name: taskNames[0], icon: 'N', room: 'NAVIGATION' },
                 { x: .80, y: .25, name: taskNames[1], icon: '↗', room: 'COMMUNICATIONS' },
                 { x: .80, y: .77, name: taskNames[2], icon: 'ϟ', room: 'REACTOR' },
                 { x: .17, y: .77, name: taskNames[3], icon: '+', room: 'MED BAY' },
                 { x: .50, y: .77, name: taskNames[4], icon: '□', room: 'CARGO BAY' },
-                { x: .80, y: .51, name: taskNames[5], icon: 'ϟ', room: 'ELECTRICAL' }
+                { x: .80, y: .51, name: taskNames[5], icon: 'ϟ', room: 'ELECTRICAL' },
+                { x: .63, y: .77, name: taskNames[6], icon: '∿', room: 'AIRLOCK' },
+                { x: .30, y: .77, name: taskNames[7], icon: '▣', room: 'STORAGE' },
+                { x: .30, y: .32, name: taskNames[8], icon: '◌', room: 'SECURITY' },
+                { x: .32, y: .45, name: taskNames[9], icon: '◈', room: 'HYDROPONICS' }
             ];
             const player = { x: .48, y: .55, speed: .22, color: '#f0eee1', alive: true };
             const keys = new Set();
@@ -920,8 +1129,6 @@
             let mapOpen = false;
             let completedTasks = 0;
             let emergencyCalls = 1;
-            let killCooldown = 0;
-            let lastKill = 0;
             let lastNpcKill = 0;
             let blackoutTimer = 0;
             let sabotageCooldown = 0;
@@ -940,6 +1147,67 @@
             let resizeTimer = 0;
 
             function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+
+            function isDoorway(axis, edge, position) {
+                return doorways.some(doorway =>
+                    doorway.axis === axis &&
+                    Math.abs(doorway.edge - edge) < 1 &&
+                    position >= doorway.start &&
+                    position <= doorway.end
+                );
+            }
+
+            function isRoomOverlap(x, y, excludedRoom) {
+                return [...rooms, observationRoom].some(room =>
+                    room !== excludedRoom &&
+                    x > room.x && x < room.x + room.width &&
+                    y > room.y && y < room.y + room.height
+                );
+            }
+
+            function canMoveTo(character, x, y, radius) {
+                const fromX = character.x * 960;
+                const fromY = character.y * 600;
+                const toX = x * 960;
+                const toY = y * 600;
+
+                for (const room of [...rooms, observationRoom]) {
+                    const bounds = [
+                        { axis: 'vertical', edge: room.x, low: room.y - radius, high: room.y + room.height + radius },
+                        { axis: 'vertical', edge: room.x + room.width, low: room.y - radius, high: room.y + room.height + radius },
+                        { axis: 'horizontal', edge: room.y, low: room.x - radius, high: room.x + room.width + radius },
+                        { axis: 'horizontal', edge: room.y + room.height, low: room.x - radius, high: room.x + room.width + radius }
+                    ];
+
+                    for (const wall of bounds) {
+                        const vertical = wall.axis === 'vertical';
+                        const from = vertical ? fromX : fromY;
+                        const to = vertical ? toX : toY;
+                        const otherFrom = vertical ? fromY : fromX;
+                        const otherTo = vertical ? toY : toX;
+                        const crossed = from < wall.edge - radius && to >= wall.edge - radius ||
+                            from > wall.edge + radius && to <= wall.edge + radius;
+                        if (!crossed) continue;
+
+                        const position = (otherFrom + otherTo) / 2;
+                        if (position < wall.low || position > wall.high) continue;
+                        if (isDoorway(wall.axis, wall.edge, position)) continue;
+                        const overlapX = vertical ? wall.edge + (to > from ? 1 : -1) : position;
+                        const overlapY = vertical ? position : wall.edge + (to > from ? 1 : -1);
+                        if (isRoomOverlap(overlapX, overlapY, room)) continue;
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            function moveCharacter(character, dx, dy, radius) {
+                const nextX = Math.max((12 + radius) / 960, Math.min((948 - radius) / 960, character.x + dx));
+                if (canMoveTo(character, nextX, character.y, radius)) character.x = nextX;
+                const nextY = Math.max((12 + radius) / 600, Math.min((588 - radius) / 600, character.y + dy));
+                if (canMoveTo(character, character.x, nextY, radius)) character.y = nextY;
+            }
 
             function resizeCanvas() {
                 const bounds = canvas.getBoundingClientRect();
@@ -1240,6 +1508,14 @@
                 member.wait = 0;
             }
 
+            function finalizeNpcTask(member) {
+                if (isImpostor || !member.alive || completedTasks >= taskNames.length) return false;
+                completedTasks += 1;
+                addFeed(`${member.name} completed ${taskNames[completedTasks - 1]}.`);
+                updateObjective();
+                return checkEndConditions();
+            }
+
             function updateRoster() {
                 const roster = document.getElementById('roster');
                 roster.replaceChildren();
@@ -1333,14 +1609,13 @@
                 impostor = isImpostor ? player : crew[Math.floor(Math.random() * crew.length)];
                 completedTasks = 0;
                 emergencyCalls = 1;
-                killCooldown = 0;
-                lastKill = 0;
                 lastNpcKill = 0;
                 blackoutTimer = 0;
                 sabotageCooldown = 0;
                 lastNpcSabotage = performance.now();
                 lastMeeting = 0;
                 roundActive = true;
+                document.body.classList.add('round-started');
                 mapOpen = false;
                 keys.clear();
                 document.getElementById('feed').replaceChildren();
@@ -1439,13 +1714,11 @@
             }
 
             function attemptKill() {
-                if (!roundActive || !isImpostor || killCooldown > 0) return;
+                if (!roundActive || !isImpostor) return;
                 const victim = nearestVictim();
                 if (!victim || distance(player, victim) > .075) return;
                 victim.alive = false;
                 bodies.push({ x: victim.x, y: victim.y, name: victim.name, color: victim.color, time: performance.now() });
-                killCooldown = 13;
-                lastKill = performance.now();
                 addFeed(`${victim.name} signal lost.`);
                 updateRoster();
                 updateObjective();
@@ -1523,7 +1796,7 @@
                     addFeed(`${selectedVote.name} was not the infiltrator.`);
                     if (checkEndConditions()) return;
                 }
-                if (isImpostor && crew.filter(member => member.alive).length > 2 && performance.now() - lastKill > 18000) {
+                if (isImpostor && crew.filter(member => member.alive).length > 2) {
                     window.setTimeout(() => {
                         if (!roundActive) return;
                         const next = crew.find(member => member.alive && member !== impostor);
@@ -1547,14 +1820,15 @@
                     triggerLightsSabotage(false);
                 }
                 const speed = player.speed * step;
-                let dx = 0, dy = 0;
-                if (keys.has('w') || keys.has('arrowup')) dy -= speed;
-                if (keys.has('s') || keys.has('arrowdown')) dy += speed;
-                if (keys.has('a') || keys.has('arrowleft')) dx -= speed;
-                if (keys.has('d') || keys.has('arrowright')) dx += speed;
-                if (dx && dy) { dx *= .707; dy *= .707; }
-                player.x = Math.max(.055, Math.min(.945, player.x + dx));
-                player.y = Math.max(.08, Math.min(.92, player.y + dy));
+                let moveX = joystick.x, moveY = joystick.y;
+                if (keys.has('w') || keys.has('arrowup')) moveY -= 1;
+                if (keys.has('s') || keys.has('arrowdown')) moveY += 1;
+                if (keys.has('a') || keys.has('arrowleft')) moveX -= 1;
+                if (keys.has('d') || keys.has('arrowright')) moveX += 1;
+                const moveLength = Math.hypot(moveX, moveY);
+                if (moveLength > 1) { moveX /= moveLength; moveY /= moveLength; }
+                const dx = moveX * speed, dy = moveY * speed;
+                moveCharacter(player, dx, dy, 12);
 
                 for (const member of crew) {
                     if (!member.alive) continue;
@@ -1569,14 +1843,14 @@
                             member.taskIndex = (member.taskIndex + 1) % consolePoints.length;
                             member.working = false;
                             randomTarget(member);
+                            if (!isImpostor) {
+                                finalizeNpcTask(member);
+                            }
                         }
                     } else {
                         const move = .075 * step;
                         const angle = Math.atan2(member.target.y - member.y, member.target.x - member.x);
-                        member.x += Math.cos(angle) * move;
-                        member.y += Math.sin(angle) * move;
-                        member.x = Math.max(.07, Math.min(.93, member.x));
-                        member.y = Math.max(.09, Math.min(.91, member.y));
+                        moveCharacter(member, Math.cos(angle) * move, Math.sin(angle) * move, 9);
                     }
                 }
 
@@ -1595,7 +1869,6 @@
 
                 const currentRoom = getPlayerRoom();
                 document.getElementById('locationTag').textContent = currentRoom ? currentRoom.name : 'CONNECTING CORRIDOR';
-                killCooldown = isImpostor ? Math.max(0, 13 - (performance.now() - lastKill) / 1000) : 0;
                 nearestConsole = findNearbyConsole();
                 const nearbyBody = nearestBodyForPlayer();
                 const victim = isImpostor ? nearestVictim() : null;
@@ -1605,12 +1878,23 @@
                 if (nearestConsole) hintText.textContent = `Use ${nearestConsole.name}`;
                 else if (nearbyBody) hintText.textContent = `Report ${nearbyBody.name}`;
                 else if (nearbyVictim) hintText.textContent = `Eliminate ${victim.name}`;
+                const mobileUseButton = document.getElementById('mobileUseButton');
+                mobileUseButton.disabled = !canSeeShip || !(nearestConsole || nearbyBody || nearbyVictim);
+                mobileUseButton.textContent = nearbyBody ? 'Report' : nearestConsole ? 'Use' : nearbyVictim ? 'Eliminate' : 'Use';
                 document.getElementById('reportButton').disabled = !nearbyBody || !canSeeShip;
-                document.getElementById('killButton').disabled = !isImpostor || !nearbyVictim || killCooldown > 0;
+                document.getElementById('killButton').disabled = !isImpostor || !nearbyVictim;
+                document.getElementById('mobileReportButton').disabled = !nearbyBody || !canSeeShip;
+                document.getElementById('mobileKillButton').disabled = !isImpostor || !nearbyVictim;
                 const killLabel = document.querySelector('#killButton span');
-                killLabel.textContent = killCooldown > 0 ? `Cooldown ${Math.ceil(killCooldown)}s` : 'Eliminate';
+                killLabel.textContent = 'Eliminate';
+                document.getElementById('mobileKillButton').textContent = 'Eliminate';
                 const sabotageButton = document.getElementById('sabotageButton');
                 sabotageButton.disabled = !isImpostor || blackoutTimer > 0 || sabotageCooldown > 0;
+                const mobileSabotageButton = document.getElementById('mobileSabotageButton');
+                mobileSabotageButton.disabled = !isImpostor || blackoutTimer > 0 || sabotageCooldown > 0;
+                mobileSabotageButton.textContent = blackoutTimer > 0
+                    ? `Off ${Math.ceil(blackoutTimer)}s`
+                    : sabotageCooldown > 0 ? `Wait ${Math.ceil(sabotageCooldown)}s` : 'Lights';
                 sabotageButton.querySelector('span').textContent = blackoutTimer > 0
                     ? `Lights out ${Math.ceil(blackoutTimer)}s`
                     : sabotageCooldown > 0 ? `Cooldown ${Math.ceil(sabotageCooldown)}s` : 'Sabotage lights';
@@ -1636,6 +1920,36 @@
                 requestAnimationFrame(animationFrame);
             }
 
+            let selectedDevice = 'pc';
+            const joystick = { x: 0, y: 0 };
+
+            function updateDeviceUI() {
+                const controlSummary = document.getElementById('controlSummary');
+                const hint = document.getElementById('interactHint');
+                const hintKey = hint.querySelector('kbd');
+                const isMobile = selectedDevice === 'mobile';
+                document.body.classList.toggle('mobile-device', isMobile);
+                document.querySelectorAll('.device-choice').forEach(choice => {
+                    choice.setAttribute('aria-pressed', String(choice.dataset.device === selectedDevice));
+                });
+                if (isMobile) {
+                    controlSummary.textContent = 'Use the joystick to move. Tap Use, Report, Eliminate, Lights, or Map as needed.';
+                } else {
+                    controlSummary.textContent = 'WASD to move · E to use a console · R to report a body.';
+                }
+                hintKey.textContent = isMobile ? '' : 'E';
+                joystick.x = 0;
+                joystick.y = 0;
+                document.getElementById('joystickKnob').style.transform = 'translate(0, 0)';
+            }
+
+            document.querySelectorAll('.device-choice').forEach(button => {
+                button.addEventListener('click', () => {
+                    selectedDevice = button.dataset.device;
+                    updateDeviceUI();
+                });
+            });
+
             document.querySelectorAll('.role-choice').forEach(button => {
                 button.addEventListener('click', () => {
                     selectedRole = button.dataset.role;
@@ -1644,6 +1958,7 @@
                     });
                 });
             });
+            updateDeviceUI();
             document.getElementById('startButton').addEventListener('click', startRound);
             document.getElementById('restartButton').addEventListener('click', startRound);
             document.getElementById('closeTaskButton').addEventListener('click', () => document.getElementById('taskOverlay').classList.add('hidden'));
@@ -1655,6 +1970,47 @@
                 if (body) reportBody(body);
             });
             document.getElementById('mapButton').addEventListener('click', () => { mapOpen = !mapOpen; });
+            document.getElementById('mobileUseButton').addEventListener('click', interact);
+            document.getElementById('mobileReportButton').addEventListener('click', () => {
+                const body = nearestBodyForPlayer();
+                if (body) reportBody(body);
+            });
+            document.getElementById('mobileKillButton').addEventListener('click', attemptKill);
+            document.getElementById('mobileSabotageButton').addEventListener('click', () => triggerLightsSabotage(true));
+            document.getElementById('mobileMapButton').addEventListener('click', () => { mapOpen = !mapOpen; });
+
+            const mobileJoystick = document.getElementById('mobileJoystick');
+            const joystickKnob = document.getElementById('joystickKnob');
+            function updateJoystick(event) {
+                const bounds = mobileJoystick.getBoundingClientRect();
+                const radius = bounds.width / 2 - 12;
+                const offsetX = event.clientX - (bounds.left + bounds.width / 2);
+                const offsetY = event.clientY - (bounds.top + bounds.height / 2);
+                const distance = Math.hypot(offsetX, offsetY);
+                const scale = distance > radius ? radius / distance : 1;
+                const x = offsetX * scale;
+                const y = offsetY * scale;
+                joystick.x = x / radius;
+                joystick.y = y / radius;
+                joystickKnob.style.transform = `translate(${x}px, ${y}px)`;
+            }
+            function releaseJoystick(event) {
+                if (mobileJoystick.hasPointerCapture(event.pointerId)) mobileJoystick.releasePointerCapture(event.pointerId);
+                joystick.x = 0;
+                joystick.y = 0;
+                joystickKnob.style.transform = 'translate(0, 0)';
+            }
+            mobileJoystick.addEventListener('pointerdown', event => {
+                if (selectedDevice !== 'mobile') return;
+                event.preventDefault();
+                mobileJoystick.setPointerCapture(event.pointerId);
+                updateJoystick(event);
+            });
+            mobileJoystick.addEventListener('pointermove', event => {
+                if (mobileJoystick.hasPointerCapture(event.pointerId)) updateJoystick(event);
+            });
+            mobileJoystick.addEventListener('pointerup', releaseJoystick);
+            mobileJoystick.addEventListener('pointercancel', releaseJoystick);
 
             window.addEventListener('keydown', event => {
                 const key = event.key.toLowerCase();
